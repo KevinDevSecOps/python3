@@ -1,0 +1,51 @@
+import sys
+import platform
+
+def scan_wifi_linux():
+    import subprocess
+    import re
+    try:
+        # Ejecuta el comando para listar redes WiFi
+        result = subprocess.check_output(['nmcli', '-f', 'SSID,SIGNAL', 'dev', 'wifi'], encoding='utf-8')
+        lines = result.strip().split('\n')[1:]  # Omite la cabecera
+        print("Redes WiFi detectadas (Linux):")
+        for line in lines:
+            # Separa SSID y SIGNAL por espacios múltiples
+            parts = re.split(r'\s{2,}', line.strip())
+            if len(parts) == 2:
+                ssid, signal = parts
+                print(f"SSID: {ssid}, Señal: {signal}")
+    except Exception as e:
+        print(f"Error al escanear WiFi en Linux: {e}")
+
+def scan_wifi_windows():
+    import subprocess
+    import re
+    try:
+        # Ejecuta el comando para listar redes WiFi
+        result = subprocess.check_output(['netsh', 'wlan', 'show', 'networks', 'mode=Bssid'], encoding='utf-8')
+        lines = result.split('\n')
+        print("Redes WiFi detectadas (Windows):")
+        ssid = None
+        for line in lines:
+            line = line.strip()
+            if line.startswith("SSID"):
+                ssid = line.split(":", 1)[1].strip()
+            if "Signal" in line and ssid:
+                signal = line.split(":", 1)[1].strip()
+                print(f"SSID: {ssid}, Señal: {signal}")
+                ssid = None
+    except Exception as e:
+        print(f"Error al escanear WiFi en Windows: {e}")
+
+def main():
+    os_name = platform.system()
+    if os_name == "Linux":
+        scan_wifi_linux()
+    elif os_name == "Windows":
+        scan_wifi_windows()
+    else:
+        print("Este script solo es compatible con Windows y Linux.")
+
+if __name__ == "__main__":
+    main()
